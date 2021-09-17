@@ -36,12 +36,22 @@ public class IndexServlet extends HttpServlet {
                 // TODO Auto-generated method stub
             EntityManager em = DBUtil.createEntityManager();
 
+            int page = 1;
+            try {
+                page = Integer.parseInt(request.getParameter("page"));
+            } catch(NumberFormatException e) {}
+
             List<Message> messages = em.createNamedQuery("getAllMessages", Message.class).getResultList();
             response.getWriter().append(Integer.valueOf(messages.size()).toString());
+
+            long messages_count = (long)em.createNamedQuery("getMessagesCount", Long.class)
+                    .getSingleResult();
 
             em.close();
 
             request.setAttribute("messages", messages);
+            request.setAttribute("messages_count", messages_count);     // 全件数
+            request.setAttribute("page", page);
 
             if(request.getSession().getAttribute("flush") != null) {
                 request.setAttribute("flush", request.getSession().getAttribute("flush"));
