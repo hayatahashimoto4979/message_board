@@ -25,20 +25,21 @@ public class UpdateServlet extends HttpServlet {
      */
     public UpdateServlet() {
         super();
-        // TODO Auto-generated constructor stub
     }
 
     /**
      * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
      */
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // TODO Auto-generated method stub
         String _token = request.getParameter("_token");
         if(_token != null && _token.equals(request.getSession().getId())) {
             EntityManager em = DBUtil.createEntityManager();
 
+            // セッションスコープからメッセージのIDを取得して
+            // 該当のIDのメッセージ1件のみをデータベースから取得
             Message m = em.find(Message.class, (Integer)(request.getSession().getAttribute("message_id")));
 
+            // フォームの内容を各フィールドに上書き
             String title = request.getParameter("title");
             m.setTitle(title);
 
@@ -46,16 +47,18 @@ public class UpdateServlet extends HttpServlet {
             m.setContent(content);
 
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            m.setUpdate_at(currentTime);
+            m.setUpdate_at(currentTime);       // 更新日時のみ上書き
 
+            // データベースを更新
             em.getTransaction().begin();
             em.getTransaction().commit();
             em.close();
 
+            // セッションスコープ上の不要になったデータを削除
             request.getSession().removeAttribute("message_id");
 
+            // indexページへリダイレクト
             response.sendRedirect(request.getContextPath() + "/index");
         }
     }
-
 }
